@@ -1,17 +1,31 @@
-혜온이 한글 따라쓰기 PWA
+const CACHE_NAME = 'hyeon-hangul-v2';
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './pwa.webmanifest',
+  './icons/icon.svg'
+];
 
-구성 파일
-- index.html
-- manifest.webmanifest
-- sw.js
-- icons/
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
+  self.skipWaiting();
+});
 
-사용 방법
-1. 이 폴더 전체를 HTTPS 웹호스팅에 올립니다.
-2. 안드로이드 태블릿의 Chrome에서 index.html 주소를 엽니다.
-3. Chrome 메뉴 → 홈 화면에 추가 또는 앱 설치를 선택합니다.
-4. 한 번 실행한 뒤에는 오프라인에서도 사용할 수 있습니다.
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+  );
+  self.clients.claim();
+});
 
-주의
-- PWA 설치 및 Service Worker는 일반적으로 HTTPS 주소에서 동작합니다.
-- 로컬 파일(file://)을 직접 열면 PWA 설치 기능이 정상 동작하지 않습니다.
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  event.respondWith(
+    caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+      const copy = response.clone();
+      caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+      return response;
+    }))
+  );
+});
