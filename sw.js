@@ -1,5 +1,47 @@
-const CACHE_NAME = "hyeon-hangul-v16";
-const APP_SHELL = ["./index.html?v=16", "./manifest.webmanifest", "./icon-512.png", "./fonts/NanumBarunGothic.otf", "./fonts/NanumBarunGothicBold.otf"];
-self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
-self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
-self.addEventListener("fetch",event=>{if(event.request.method!=="GET")return;if(event.request.mode==="navigate"){event.respondWith(fetch(event.request,{cache:"no-store"}).then(r=>{const copy=r.clone();caches.open(CACHE_NAME).then(c=>c.put("./index.html?v=16",copy));return r}).catch(()=>caches.match("./index.html?v=16")));return;}event.respondWith(caches.match(event.request).then(c=>c||fetch(event.request)))});
+const CACHE_NAME = "hyeon-hangul-v17";
+const APP_SHELL = ["./index.html?v=17", "./manifest.webmanifest", "./icon-512.png", "./font-trace.js?v=17", "./fonts/NanumBarunGothic.otf"];
+
+self.addEventListener("install", event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
+});
+
+async function injectTracePatch(response){
+  const type=response.headers.get("content-type")||"";
+  if(!type.includes("text/html")) return response;
+  let html=await response.text();
+  if(!html.includes("font-trace.js")){
+    html=html.replace("</body>",'<script src="./font-trace.js?v=17"></script></body>');
+  }
+  const headers=new Headers(response.headers);
+  headers.set("content-type","text/html; charset=utf-8");
+  headers.delete("content-length");
+  return new Response(html,{status:response.status,statusText:response.statusText,headers});
+}
+
+self.addEventListener("fetch", event => {
+  if(event.request.method !== "GET") return;
+  if(event.request.mode === "navigate"){
+    event.respondWith((async()=>{
+      try{
+        const fresh=await fetch(event.request,{cache:"no-store"});
+        const patched=await injectTracePatch(fresh.clone());
+        const copy=patched.clone();
+        caches.open(CACHE_NAME).then(cache=>cache.put("./index.html?v=17",copy));
+        return patched;
+      }catch(e){
+        const cached=await caches.match("./index.html?v=17");
+        return cached || caches.match("./index.html?v=16");
+      }
+    })());
+    return;
+  }
+  event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request)));
+});
