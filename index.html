@@ -29,7 +29,7 @@ body{display:flex;justify-content:center}.app{width:min(100%,760px);padding:14px
 <div class="status" id="status">① 1획부터 번호와 화살표를 보고 써요 👆</div>
 <div class="controls"><button class="action" id="listenBtn">🔊 소리</button><button class="action" id="clearBtn">🧽 다시</button><button class="action ok" id="doneBtn">⭐ 다 썼어요</button><button class="action primary wide" id="nextBtn">다음 글자 →</button></div>
 <div class="tip">위 예시 글자는 나눔바른고딕 그대로 보여주고, 아래 점선만 따라쓰기용 획순으로 안내해요.</div></div></div><div class="confetti" id="confetti"></div>
-<script>
+<script src="./hangeul-dataset.js?v=20"></script><script>
 const sets={consonant:[["ㄱ","기역"],["ㄴ","니은"],["ㄷ","디귿"],["ㄹ","리을"],["ㅁ","미음"],["ㅂ","비읍"],["ㅅ","시옷"],["ㅇ","이응"],["ㅈ","지읒"],["ㅊ","치읓"],["ㅋ","키읔"],["ㅌ","티읕"],["ㅍ","피읖"],["ㅎ","히읗"]],vowel:[["ㅏ","아"],["ㅑ","야"],["ㅓ","어"],["ㅕ","여"],["ㅗ","오"],["ㅛ","요"],["ㅜ","우"],["ㅠ","유"],["ㅡ","으"],["ㅣ","이"]],syllable:[["가","가"],["나","나"],["다","다"],["라","라"],["마","마"],["바","바"],["사","사"],["아","아"],["자","자"],["차","차"],["카","카"],["타","타"],["파","파"],["하","하"]]};
 const P={
 "ㄱ":[[[24,24],[76,24]],[[76,24],[76,78]]],"ㄴ":[[[26,22],[26,78]],[[26,78],[76,78]]],"ㄷ":[[[24,24],[76,24]],[[24,24],[24,78],[76,78]],[[76,24],[76,78]]],
@@ -47,7 +47,8 @@ const strokeDataset={
   "ㅏ":{"strokes":[{"points":[{"x":42,"y":20,"label":"시작"},{"x":42,"y":80,"label":"종료"}]},{"points":[{"x":42,"y":50,"label":"시작"},{"x":72,"y":50,"label":"종료"}]}]},
   "ㅑ":{"strokes":[{"points":[{"x":42,"y":20,"label":"시작"},{"x":42,"y":80,"label":"종료"}]},{"points":[{"x":42,"y":40,"label":"시작"},{"x":72,"y":40,"label":"종료"}]},{"points":[{"x":42,"y":60,"label":"시작"},{"x":72,"y":60,"label":"종료"}]}]}
 };
-for(const [ch,data] of Object.entries(strokeDataset)) P[ch]=data.strokes.map(st=>st.points.map(pt=>[pt.x,pt.y]));
+// 외부 400px 데이터셋을 현재 캔버스의 0~100% 좌표로 변환해 실제 경로로 사용합니다.
+for(const [ch,data] of Object.entries(window.hangeulDataset)) P[ch]=data.strokes.map(st=>st.points.map(pt=>[pt.x/4,pt.y/4]));
 const lead={가:"ㄱ",나:"ㄴ",다:"ㄷ",라:"ㄹ",마:"ㅁ",바:"ㅂ",사:"ㅅ",아:"ㅇ",자:"ㅈ",차:"ㅊ",카:"ㅋ",타:"ㅌ",파:"ㅍ",하:"ㅎ"};
 let mode="consonant",idx=0,stars=0,currentStroke=0,drawing=false,last=null,completed=false,samples=[],visited=new Set();
 const letters=document.getElementById('letters'),big=document.getElementById('bigLetter'),sound=document.getElementById('soundText'),status=document.getElementById('status'),guide=document.getElementById('guide'),draw=document.getElementById('draw'),g=guide.getContext('2d'),d=draw.getContext('2d');
@@ -69,6 +70,6 @@ function speak(){if(!speechSynthesis)return;setTimeout(()=>{speechSynthesis.canc
 function finishLetter(){completed=true;stars++;document.getElementById('starCount').textContent=stars;guidePaint();setStatus('완성! '+cur()[0]+' ⭐','good');ding();speak()}
 function setStatus(m,c){status.textContent=m;status.className='status'+(c?' '+c:'')}function update(){render();guidePaint();requestAnimationFrame(()=>letters.querySelector('.active')?.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}))}
 draw.addEventListener('pointerdown',start);draw.addEventListener('pointermove',move);draw.addEventListener('pointerup',end);draw.addEventListener('pointercancel',end);document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;idx=0;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));update();reset()});document.getElementById('clearBtn').onclick=reset;document.getElementById('nextBtn').onclick=()=>{idx=(idx+1)%sets[mode].length;update();reset()};document.getElementById('listenBtn').onclick=()=>{if(!speechSynthesis)return;const u=new SpeechSynthesisUtterance(cur()[1]);u.lang='ko-KR';u.rate=.72;speechSynthesis.cancel();speechSynthesis.speak(u)};document.getElementById('doneBtn').onclick=()=>completed?(ding(),speak()):setStatus((currentStroke+1)+'획을 100% 따라 써야 해요 😊','bad');window.addEventListener('resize',resize);render();setTimeout(resize,80);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=19').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=20').catch(()=>{});
 </script><script src="./font-trace.js?v=19"></script></body></html>
 
