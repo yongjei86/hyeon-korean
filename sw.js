@@ -1,5 +1,5 @@
-const CACHE_NAME = "hyeon-hangul-v19";
-const APP_SHELL = ["./index.html?v=19", "./manifest.webmanifest", "./icon-512.png", "./font-trace.js?v=19", "./fonts/NanumBarunGothic.otf", "./fonts/NanumBarunGothicBold.otf"];
+const CACHE_NAME = "hyeon-hangul-v20";
+const APP_SHELL = ["./index.html?v=20", "./hangeul-dataset.js?v=20", "./manifest.webmanifest", "./icon-512.png", "./font-trace.js?v=19", "./fonts/NanumBarunGothic.otf", "./fonts/NanumBarunGothicBold.otf"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
@@ -33,10 +33,10 @@ self.addEventListener("fetch", event => {
         const fresh=await fetch(event.request,{cache:"no-store"});
         const patched=await injectTracePatch(fresh.clone());
         const copy=patched.clone();
-        caches.open(CACHE_NAME).then(cache=>cache.put("./index.html?v=19",copy));
+        caches.open(CACHE_NAME).then(cache=>cache.put("./index.html?v=20",copy));
         return patched;
       }catch(e){
-        const cached=await caches.match("./index.html?v=19");
+        const cached=await caches.match("./index.html?v=20");
         return cached || caches.match("./index.html?v=18");
       }
     })());
