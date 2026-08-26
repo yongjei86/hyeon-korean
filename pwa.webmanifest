@@ -1,0 +1,19 @@
+{
+  "name": "혜온이 한글 따라쓰기",
+  "short_name": "혜온이 한글",
+  "description": "자음·모음·글자 따라쓰기 학습 앱",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fffaf3",
+  "theme_color": "#fffaf3",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
